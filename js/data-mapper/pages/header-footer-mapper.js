@@ -67,14 +67,23 @@
     setMeta('og:description', seo.description);
   };
 
-  // MAPPER: layoutMap.enabled === false 이면 미리보기(data-menu-id="layout-map") 숨김 (헤더 + 각 snb 공통)
+  // MAPPER: layoutMap 꺼짐 이면 미리보기(data-menu-id="layout-map") 숨김 (헤더 + 각 snb 공통)
+  //         + 대메뉴 ROOMS([data-rooms-link])를 첫 번째 객실 상세로 보낸다 — 그대로 두면
+  //         layout-map.html 이 404 로 튕긴다.
+  // 판정은 layout-map-mapper 의 404 기준과 같은 isLayoutMapEnabled() (섹션 없음 / enabled:false → 꺼짐).
+  // mapPage 마다 다시 돌므로 preview 재렌더에서도 다시 적용된다.
   HeaderFooterMapper.prototype.mapPreviewMenu = function () {
-    var pages = this.getPages();
-    var lm = pages.layoutMap && pages.layoutMap.sections && pages.layoutMap.sections[0];
-    var hide = !!(lm && lm.enabled === false);
+    var hide = !this.isLayoutMapEnabled();
     document.querySelectorAll('[data-menu-id="layout-map"]').forEach(function (el) {
       el.style.display = hide ? 'none' : '';
     });
+
+    var roomsLink = this.getRoomsEntryLink();
+    if (roomsLink) {
+      document.querySelectorAll('[data-rooms-link]').forEach(function (el) {
+        el.setAttribute('href', roomsLink);
+      });
+    }
   };
 
   // MAPPER: nearbyAttractions.enabled === false 이면 TRAVEL/주변여행지 메뉴 숨김 (헤더 PC·모바일 + 푸터)
